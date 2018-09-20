@@ -114,8 +114,8 @@ if (mode === 'server') {
     excludeAssets,
     logger: new Logger(logLevel)
   });
-} else if (mode === 'static') {
-  viewer.generateReport(bundleStats, {
+} else if (mode === 'json') {
+  viewer.generateJSONReport(bundleStats, {
     openBrowser,
     reportFilename: resolve(reportFilename),
     defaultSizes,
@@ -124,7 +124,7 @@ if (mode === 'server') {
     logger: new Logger(logLevel)
   });
 } else {
-  viewer.generateJSONReport(bundleStats, {
+  viewer.generateReport(bundleStats, {
     openBrowser,
     reportFilename: resolve(reportFilename),
     defaultSizes,

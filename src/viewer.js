@@ -159,7 +159,6 @@ async function generateJSONReport(bundleStats, opts) {
     reportFilename = 'report.json',
     bundleDir = null,
     logger = new Logger(),
-    defaultSizes = 'parsed',
     excludeAssets = null
   } = opts || {};
 
@@ -176,14 +175,18 @@ async function generateJSONReport(bundleStats, opts) {
 
   mkdir.sync(path.dirname(reportFilepath));
 
-  await bfj.write(reportFilepath, report, {
-    space: 2,
-    promises: 'ignore',
-    buffers: 'ignore',
-    maps: 'ignore',
-    iterables: 'ignore',
-    circular: 'ignore'
-  });
+  try {
+    await bfj.write(reportFilepath, report, {
+      space: 2,
+      promises: 'ignore',
+      buffers: 'ignore',
+      maps: 'ignore',
+      iterables: 'ignore',
+      circular: 'ignore'
+    });
+  } catch (err) {
+    return logger.error(err);
+  }
 
   logger.info(
     `${bold('Webpack Bundle Analyzer')} saved report to ${bold(reportFilepath)}`
