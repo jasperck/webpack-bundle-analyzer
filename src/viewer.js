@@ -10,10 +10,10 @@ const opener = require('opener');
 const mkdir = require('mkdirp');
 const { bold } = require('chalk');
 const bfj = require('bfj-node4');
+const filesize = require('filesize');
 
 const Logger = require('./Logger');
 const analyzer = require('./analyzer');
-const { convertBytesToSize } = require('./convertBytesToSize');
 
 const projectRoot = path.resolve(__dirname, '..');
 
@@ -174,9 +174,9 @@ async function generateJSONReport(bundleStats, opts) {
 
   report = report.map(item => ({
     label: item.label,
-    statSize: convertBytesToSize(item.statSize),
-    parsedSize: convertBytesToSize(item.parsedSize),
-    gzipSize: convertBytesToSize(item.gzipSize),
+    statSize: filesize(item.statSize),
+    parsedSize: filesize(item.parsedSize),
+    gzipSize: filesize(item.gzipSize),
     chunkNames: item.chunkNames
   }));
 
