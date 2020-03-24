@@ -13,6 +13,7 @@ const bfj = require('bfj-node4');
 
 const Logger = require('./Logger');
 const analyzer = require('./analyzer');
+const { convertBytesToSize } = require('./convertBytesToSize');
 
 const projectRoot = path.resolve(__dirname, '..');
 
@@ -162,7 +163,7 @@ async function generateJSONReport(bundleStats, opts) {
     excludeAssets = null
   } = opts || {};
 
-  const report = analyzer.getViewerData(
+  let report = analyzer.getViewerData(
     bundleStats,
     bundleDir,
     {
@@ -170,6 +171,14 @@ async function generateJSONReport(bundleStats, opts) {
       logger
     }
   );
+
+  report = report.map(item => ({
+    label: item.label,
+    statSize: convertBytesToSize(item.statSize),
+    parsedSize: convertBytesToSize(item.parsedSize),
+    gzipSize: convertBytesToSize(item.gzipSize),
+    chunkNames: item.chunkNames
+  }));
 
   const reportFilepath = path.resolve(bundleDir || process.cwd(), reportFilename);
 
