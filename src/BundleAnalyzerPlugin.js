@@ -10,13 +10,13 @@ class BundleAnalyzerPlugin {
 
   constructor(opts) {
     this.opts = {
-      analyzerMode: 'server',
+      analyzerMode: 'json',
       analyzerHost: '127.0.0.1',
       analyzerPort: 8888,
       reportFilename: opts.analyzerMode === 'json' ? 'report.json' : 'report.html',
-      defaultSizes: 'parsed',
-      openAnalyzer: true,
-      generateStatsFile: false,
+      defaultSizes: 'gzip',
+      openAnalyzer: false,
+      generateStatsFile: true,
       statsFilename: 'stats.json',
       statsOptions: null,
       excludeAssets: null,

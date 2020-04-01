@@ -1,7 +1,10 @@
 const { inspect } = require('util');
 const _ = require('lodash');
 
-exports.createAssetsFilter = createAssetsFilter;
+module.exports = {
+  createAssetsFilter,
+  isCssFile
+};
 
 function createAssetsFilter(excludePatterns) {
   const excludeFunctions = _(excludePatterns)
@@ -31,4 +34,8 @@ function createAssetsFilter(excludePatterns) {
   } else {
     return () => true;
   }
+}
+
+function isCssFile(filename) {
+  return /\.css$/.test(filename);
 }

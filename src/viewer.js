@@ -14,6 +14,7 @@ const filesize = require('filesize');
 
 const Logger = require('./Logger');
 const analyzer = require('./analyzer');
+const { isCssFile } = require('./utils');
 
 const projectRoot = path.resolve(__dirname, '..');
 
@@ -172,13 +173,20 @@ async function generateJSONReport(bundleStats, opts) {
     }
   );
 
-  report = report.map(item => ({
-    label: item.label,
-    statSize: filesize(item.statSize),
-    parsedSize: filesize(item.parsedSize),
-    gzipSize: filesize(item.gzipSize),
-    chunkNames: item.chunkNames
-  }));
+  report = report.map(item => {
+    const result = {
+      label: item.label,
+      parsedSize: filesize(item.parsedSize),
+      gzipSize: filesize(item.gzipSize),
+      chunkNames: item.chunkNames
+    };
+
+    if (!isCssFile(item.label)) {
+      result.statSize = filesize(item.statSize);
+    }
+
+    return result;
+  });
 
   const reportFilepath = path.resolve(bundleDir || process.cwd(), reportFilename);
 

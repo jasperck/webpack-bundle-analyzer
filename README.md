@@ -28,15 +28,13 @@ const BundleAnalyzerJsonPlugin = require('webpack-bundle-analyzer-json').BundleA
 module.exports = {
   plugins: [
     new BundleAnalyzerJsonPlugin({
-        analyzerMode: 'json',
-        defaultSizes: 'gzip',
-        generateStatsFile: true
+        reportFilename: 'file-path'
     })
   ]
 }
 ```
 
-Analyzer will generate a JSON report containing chunks data converted from bytes into appropriate units according
+Analyzer will generate a JSON report containing chunks (.js, .css) data converted from bytes into appropriate units according
 to the [filesize](https://www.npmjs.com/package/filesize) provided API. 
 
 ## Result
@@ -45,22 +43,38 @@ to the [filesize](https://www.npmjs.com/package/filesize) provided API.
 [
   {
     "label": "scripts/Drawer.js",
-    "statSize": "13.67 KB",
     "parsedSize": "7.16 KB",
     "gzipSize": "2.56 KB",
+    "chunkNames": [
+      "Drawer"
+    ],
+    "statSize": "13.67 KB",
+  },
+  {
+    "label": "scripts/Checkout.js",
+    "parsedSize": "47.43 KB",
+    "gzipSize": "14.62 KB",
+    "chunkNames": [
+      "Checkout"
+    ],
+    "statSize": "113.11 KB",
+  },
+{
+    "label": "Drawer.css",
+    "parsedSize": "53.11 KB",
+    "gzipSize": "11.03 KB",
     "chunkNames": [
       "Drawer"
     ]
   },
   {
-    "label": "scripts/Checkout.js",
-    "statSize": "113.11 KB",
-    "parsedSize": "47.43 KB",
-    "gzipSize": "14.62 KB",
+    "label": "Checkout.css",
+    "parsedSize": "24.63 KB",
+    "gzipSize": "4.97 KB",
     "chunkNames": [
       "Checkout"
     ]
-  }
+  },
 ]
 ```
 
