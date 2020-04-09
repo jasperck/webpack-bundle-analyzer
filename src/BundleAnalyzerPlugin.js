@@ -16,7 +16,7 @@ class BundleAnalyzerPlugin {
       reportFilename: opts.analyzerMode === 'json' ? 'report.json' : 'report.html',
       defaultSizes: 'gzip',
       openAnalyzer: false,
-      generateStatsFile: true,
+      generateStatsFile: false,
       statsFilename: 'stats.json',
       statsOptions: null,
       excludeAssets: null,
