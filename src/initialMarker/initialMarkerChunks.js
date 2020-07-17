@@ -5,7 +5,7 @@ const getMarkedChunks = (bundleArr, initialChunks, initialPrefix, isServerChunk,
     let initialArr = [], secondaryArr = [], serverArr = [];
 
     bundleArr.map(item => {
-        if (isServerChunk && item.chunkNames[0] === 'server') {
+        if (isServerChunk) {
             item.label = `${serverPrefix} : ${item.label}`;
             serverArr.push(item);
         } else if (initialChunks.includes(item.chunkNames[0])) {

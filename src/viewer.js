@@ -163,7 +163,7 @@ async function generateJSONReport(bundleStats, opts) {
     bundleDir = null,
     logger = new Logger(),
     excludeAssets = null,
-    initialLoadingResources = null,
+    initialLoadingResources = [],
     initialResourcePrefix = "Initial Loaded Resource : ",
     server = false,
     serverResourcePrefix = "Server resource : ",

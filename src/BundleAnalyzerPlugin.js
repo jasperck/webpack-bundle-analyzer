@@ -23,7 +23,7 @@ class BundleAnalyzerPlugin {
       logLevel: 'info',
       // deprecated
       startAnalyzer: true,
-      initialLoadingResources: null,
+      initialLoadingResources: [],
       initialResourcePrefix: "Initial Loaded Resource : ",
       serverResourcePrefix: "Server resource : ",
       server: false,
