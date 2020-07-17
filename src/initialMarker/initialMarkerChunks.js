@@ -1,17 +1,15 @@
 const sortChunks = require('./sortChunks');
-const getTotalInitialChunks = require('./getTotalInitialChunks');
 
-const getMarkedChunks = (bundleArr, chunks) => {
+const getMarkedChunks = (bundleArr, initialChunks, initialPrefix, isServerChunk, serverPrefix) => {
     
     let initialArr = [], secondaryArr = [], serverArr = [];
 
     bundleArr.map(item => {
-        const serverChunk = chunks.find(chunk => chunk === 'server');
-        if (item.chunkNames[0] === serverChunk) {
-            item.label = `Server resource : ${item.label}`;
+        if (isServerChunk && item.chunkNames[0] === 'server') {
+            item.label = `${serverPrefix} : ${item.label}`;
             serverArr.push(item);
-        } else if (chunks.includes(item.chunkNames[0])) {
-            item.label = `Initial loaded resource : ${item.label}`;
+        } else if (initialChunks.includes(item.chunkNames[0])) {
+            item.label = `${initialPrefix} : ${item.label}`;
             initialArr.push(item);
         } else {
             secondaryArr.push(item);
@@ -20,16 +18,17 @@ const getMarkedChunks = (bundleArr, chunks) => {
     return { initialArr, secondaryArr, serverArr };
 }
 
-module.exports = (arr, chunks) => {
+module.exports = (arr, initialLoadingResources, initialResourcePrefix, server, serverResourcePrefix) => {
 
     let initialSortedArr = [], secondarySortedArr = [], serverSortedArr = [];
-    const { initialArr, secondaryArr, serverArr } = getMarkedChunks(arr, chunks);
+    const { 
+        initialArr,
+        secondaryArr,
+        serverArr } = getMarkedChunks(arr, initialLoadingResources, initialResourcePrefix, server, serverResourcePrefix);
 
     initialSortedArr = sortChunks(initialArr);
     secondarySortedArr = sortChunks(secondaryArr);
     serverSortedArr = sortChunks(serverArr);
-
-    initialSortedArr.length && initialSortedArr.push(getTotalInitialChunks(initialSortedArr));
 
     const report = [...initialSortedArr, ...secondarySortedArr, ...serverSortedArr];
     

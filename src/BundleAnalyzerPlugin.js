@@ -23,7 +23,10 @@ class BundleAnalyzerPlugin {
       logLevel: 'info',
       // deprecated
       startAnalyzer: true,
-      chunks: null,
+      initialLoadingResources: null,
+      initialResourcePrefix: "Initial Loaded Resource : ",
+      serverResourcePrefix: "Server resource : ",
+      server: false,
       ...opts
     };
 
@@ -103,7 +106,10 @@ class BundleAnalyzerPlugin {
       logger: this.logger,
       defaultSizes: this.opts.defaultSizes,
       excludeAssets: this.opts.excludeAssets,
-      chunks: this.opts.chunks,
+      initialLoadingResources: this.opts.initialLoadingResources,
+      initialResourcePrefix: this.opts.initialResourcePrefix,
+      server: this.opts.server,
+      serverResourcePrefix: this.opts.serverResourcePrefix,
     });
   }
 
