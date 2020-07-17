@@ -15,6 +15,7 @@ const filesize = require('filesize');
 const Logger = require('./Logger');
 const analyzer = require('./analyzer');
 const { isCssFile } = require('./utils');
+const initialMarkerChunks = require('./initialMarker/initialMarkerChunks');
 
 const projectRoot = path.resolve(__dirname, '..');
 
@@ -161,7 +162,11 @@ async function generateJSONReport(bundleStats, opts) {
     reportFilename = 'report.json',
     bundleDir = null,
     logger = new Logger(),
-    excludeAssets = null
+    excludeAssets = null,
+    initialLoadingResources = [],
+    initialResourcePrefix = "Initial Loaded Resource : ",
+    server = false,
+    serverResourcePrefix = "Server resource : ",
   } = opts || {};
 
   let report = analyzer.getViewerData(
@@ -187,6 +192,9 @@ async function generateJSONReport(bundleStats, opts) {
 
     return result;
   });
+
+  report = (initialLoadingResources && initialLoadingResources.length) ? 
+    initialMarkerChunks(report, initialLoadingResources, initialResourcePrefix, server, serverResourcePrefix) : report;
 
   const reportFilepath = path.resolve(bundleDir || process.cwd(), reportFilename);
 
