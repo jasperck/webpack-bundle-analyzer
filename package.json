@@ -23,6 +23,7 @@
     "build": "gulp build",
     "npm-publish": "npm run lint && npm run build && npm test && npm publish",
     "lint": "eslint --ext js,jsx .",
+    "lint:fix": "eslint --ext js,jsx . --fix",
     "test": "mocha --exit --require babel-core/register",
     "test-dev": "mocha --watch --require babel-core/register"
   },
