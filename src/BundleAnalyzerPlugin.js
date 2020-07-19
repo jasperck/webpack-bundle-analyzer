@@ -24,8 +24,8 @@ class BundleAnalyzerPlugin {
       // deprecated
       startAnalyzer: true,
       initialLoadingResources: [],
-      initialResourcePrefix: "Initial Loaded Resource : ",
-      serverResourcePrefix: "Server resource : ",
+      initialResourcePrefix: 'Initial Loaded Resource : ',
+      serverResourcePrefix: 'Server resource : ',
       server: false,
       ...opts
     };
@@ -109,7 +109,7 @@ class BundleAnalyzerPlugin {
       initialLoadingResources: this.opts.initialLoadingResources,
       initialResourcePrefix: this.opts.initialResourcePrefix,
       server: this.opts.server,
-      serverResourcePrefix: this.opts.serverResourcePrefix,
+      serverResourcePrefix: this.opts.serverResourcePrefix
     });
   }
 
