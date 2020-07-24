@@ -25,7 +25,7 @@ class BundleAnalyzerPlugin {
       startAnalyzer: true,
       initialLoadingResources: [],
       initialResourcePrefix: 'Initial Loaded Resource : ',
-      serverResourcePrefix: 'Server resource : ',
+      serverResourcePrefix: 'Server Resource : ',
       server: false,
       ...opts
     };
