@@ -166,7 +166,7 @@ async function generateJSONReport(bundleStats, opts) {
     initialLoadingResources = [],
     initialResourcePrefix = 'Initial Loaded Resource : ',
     server = false,
-    serverResourcePrefix = 'Server resource : '
+    serverResourcePrefix = 'Server Resource : '
   } = opts || {};
 
   let report = analyzer.getViewerData(
@@ -193,7 +193,7 @@ async function generateJSONReport(bundleStats, opts) {
     return result;
   });
 
-  report = (initialLoadingResources && initialLoadingResources.length) ?
+  report = ((initialLoadingResources && initialLoadingResources.length) || server) ?
     initialMarkerChunks(report, initialLoadingResources, initialResourcePrefix, server, serverResourcePrefix) : report;
 
   const reportFilepath = path.resolve(bundleDir || process.cwd(), reportFilename);
