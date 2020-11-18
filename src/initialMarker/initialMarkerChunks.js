@@ -1,12 +1,18 @@
 const sortChunks = require('./sortChunks');
+const Validator = require('./validator');
 
-const getMarkedChunks = (bundleArr, initialChunks, initialPrefix, isServerChunk, serverPrefix) => {
-
+const getMarkedChunks = (
+  bundleArr,
+  initialChunks,
+  initialPrefix,
+  isServerChunk,
+  serverPrefix
+) => {
   const initialArr = [];
   const secondaryArr = [];
   const serverArr = [];
 
-  bundleArr.map(item => {
+  bundleArr.map((item) => {
     if (isServerChunk) {
       item.label = `${serverPrefix}${item.label}`;
       return serverArr.push(item);
@@ -15,25 +21,53 @@ const getMarkedChunks = (bundleArr, initialChunks, initialPrefix, isServerChunk,
       return initialArr.push(item);
     } else {
       return secondaryArr.push(item);
-    };
+    }
   });
   return { initialArr, secondaryArr, serverArr };
 };
 
-module.exports = (arr, initialLoadingResources, initialResourcePrefix, server, serverResourcePrefix) => {
-
+module.exports = (
+  arr,
+  {
+    initialLoadingResources,
+    maxInitialLoadingSizeSingle,
+    maxInitialLoadingSizeBundle,
+    chunksLoadingResources,
+    maxLazyLoadingSizeSingle,
+    maxLazyLoadingSizeBundle,
+    initialResourcePrefix,
+    server,
+    serverResourcePrefix
+  }
+) => {
+  const validator = new Validator({
+    initialLoadingResources,
+    maxInitialLoadingSizeSingle,
+    maxInitialLoadingSizeBundle,
+    chunksLoadingResources,
+    maxLazyLoadingSizeSingle,
+    maxLazyLoadingSizeBundle
+  });
   let initialSortedArr = [];
   let secondarySortedArr = [];
   let serverSortedArr = [];
-  const { initialArr,
-    secondaryArr,
-    serverArr } = getMarkedChunks(arr, initialLoadingResources, initialResourcePrefix, server, serverResourcePrefix);
+  const { initialArr, secondaryArr, serverArr } = getMarkedChunks(
+    arr,
+    initialLoadingResources,
+    initialResourcePrefix,
+    server,
+    serverResourcePrefix
+  );
 
-  initialSortedArr = sortChunks(initialArr);
-  secondarySortedArr = sortChunks(secondaryArr);
+  initialSortedArr = validator.checkInitial(sortChunks(initialArr));
+  secondarySortedArr = validator.checkChunks(sortChunks(secondaryArr));
   serverSortedArr = sortChunks(serverArr);
 
-  const report = [...initialSortedArr, ...secondarySortedArr, ...serverSortedArr];
+  const report = [
+    ...initialSortedArr,
+    ...secondarySortedArr,
+    ...serverSortedArr
+  ];
 
-  return report;
+  return { report, budgetErrors: validator.errorsArray };
 };
