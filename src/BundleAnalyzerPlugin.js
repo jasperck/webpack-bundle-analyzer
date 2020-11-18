@@ -25,15 +25,14 @@ class BundleAnalyzerPlugin {
       startAnalyzer: true,
 
       // JSON specific options block
-      failBuild: true,
       initialLoadingResources: [],
       maxInitialLoadingSizeSingle: 100,
       maxInitialLoadingSizeBundle: 500,
       chunksLoadingResources: [],
       maxLazyLoadingSizeSingle: 100,
-      failOnBudgetError: true,
-      // Lazy Bundle size check disabled initially
-      maxLazyLoadingSizeBundle: Number.MAX_SAFE_INTEGER,
+      failOnBudgetError: false,
+      // Bigger number to avoid useless warnings
+      maxLazyLoadingSizeBundle: 1000,
 
       initialResourcePrefix: 'Initial Loaded Resource : ',
       serverResourcePrefix: 'Server Resource : ',
@@ -43,7 +42,6 @@ class BundleAnalyzerPlugin {
 
     this.server = null;
     this.logger = new Logger(this.opts.logLevel);
-    this.budgetErrors = null;
   }
 
   apply(compiler) {
