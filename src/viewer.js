@@ -8,7 +8,7 @@ const express = require('express');
 const ejs = require('ejs');
 const opener = require('opener');
 const mkdir = require('mkdirp');
-const { bold } = require('chalk');
+const chalk = require('chalk');
 const bfj = require('bfj-node4');
 const filesize = require('filesize');
 
@@ -18,6 +18,7 @@ const { isCssFile } = require('./utils');
 const initialMarkerChunks = require('./initialMarker/initialMarkerChunks');
 
 const projectRoot = path.resolve(__dirname, '..');
+const { bold } = chalk;
 
 module.exports = {
   startServer,
@@ -56,14 +57,16 @@ async function startServer(bundleStats, opts) {
   app.use('/', (req, res) => {
     res.render('viewer', {
       mode: 'server',
-      get chartData() { return JSON.stringify(chartData) },
+      get chartData() {
+        return JSON.stringify(chartData);
+      },
       defaultSizes: JSON.stringify(defaultSizes)
     });
   });
 
   const server = http.createServer(app);
 
-  await new Promise(resolve => {
+  await new Promise((resolve) => {
     server.listen(port, host, () => {
       resolve();
 
@@ -71,7 +74,7 @@ async function startServer(bundleStats, opts) {
 
       logger.info(
         `${bold('Webpack Bundle Analyzer')} is started at ${bold(url)}\n` +
-        `Use ${bold('Ctrl+C')} to close it`
+          `Use ${bold('Ctrl+C')} to close it`
       );
 
       if (openBrowser) {
@@ -82,8 +85,8 @@ async function startServer(bundleStats, opts) {
 
   const wss = new WebSocket.Server({ server });
 
-  wss.on('connection', ws => {
-    ws.on('error', err => {
+  wss.on('connection', (ws) => {
+    ws.on('error', (err) => {
       // Ignore network errors like `ECONNRESET`, `EPIPE`, etc.
       if (err.errno) return;
 
@@ -104,12 +107,14 @@ async function startServer(bundleStats, opts) {
 
     chartData = newChartData;
 
-    wss.clients.forEach(client => {
+    wss.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({
-          event: 'chartDataUpdated',
-          data: newChartData
-        }));
+        client.send(
+          JSON.stringify({
+            event: 'chartDataUpdated',
+            data: newChartData
+          })
+        );
       }
     });
   }
@@ -125,7 +130,11 @@ function generateReport(bundleStats, opts) {
     excludeAssets = null
   } = opts || {};
 
-  const chartData = getChartData({ logger, excludeAssets }, bundleStats, bundleDir);
+  const chartData = getChartData(
+    { logger, excludeAssets },
+    bundleStats,
+    bundleDir
+  );
 
   if (!chartData) return;
 
@@ -140,13 +149,18 @@ function generateReport(bundleStats, opts) {
     (err, reportHtml) => {
       if (err) return logger.error(err);
 
-      const reportFilepath = path.resolve(bundleDir || process.cwd(), reportFilename);
+      const reportFilepath = path.resolve(
+        bundleDir || process.cwd(),
+        reportFilename
+      );
 
       mkdir.sync(path.dirname(reportFilepath));
       fs.writeFileSync(reportFilepath, reportHtml);
 
       logger.info(
-        `${bold('Webpack Bundle Analyzer')} saved report to ${bold(reportFilepath)}`
+        `${bold('Webpack Bundle Analyzer')} saved report to ${bold(
+          reportFilepath
+        )}`
       );
 
       if (openBrowser) {
@@ -164,39 +178,64 @@ async function generateJSONReport(bundleStats, opts) {
     logger = new Logger(),
     excludeAssets = null,
     initialLoadingResources = [],
+    maxInitialLoadingSizeSingle = 100,
+    maxInitialLoadingSizeBundle = 500,
+    chunksLoadingResources = [],
+    maxLazyLoadingSizeSingle = 100,
+    maxLazyLoadingSizeBundle = 99999,
     initialResourcePrefix = 'Initial Loaded Resource : ',
     server = false,
     serverResourcePrefix = 'Server Resource : '
   } = opts || {};
 
-  let report = analyzer.getViewerData(
-    bundleStats,
-    bundleDir,
-    {
+  const viewerData = analyzer
+    .getViewerData(bundleStats, bundleDir, {
       excludeAssets,
       logger
-    }
+    })
+    .map((item) => {
+      const result = {
+        label: item.label,
+        parsedSize: filesize(item.parsedSize),
+        gzipSize: filesize(item.gzipSize),
+        chunkNames: item.chunkNames
+      };
+
+      if (!isCssFile(item.label)) {
+        result.statSize = filesize(item.statSize);
+      }
+
+      return result;
+    });
+
+  const { report, budgetErrors } =
+    (initialLoadingResources && initialLoadingResources.length) || server
+      ? initialMarkerChunks(viewerData, {
+        initialLoadingResources,
+        maxInitialLoadingSizeSingle,
+        maxInitialLoadingSizeBundle,
+        chunksLoadingResources,
+        maxLazyLoadingSizeSingle,
+        maxLazyLoadingSizeBundle,
+        initialResourcePrefix,
+        server,
+        serverResourcePrefix
+      })
+      : { report: viewerData, budgetErrors: [] };
+
+  const reportFilepath = path.resolve(
+    bundleDir || process.cwd(),
+    reportFilename
   );
 
-  report = report.map(item => {
-    const result = {
-      label: item.label,
-      parsedSize: filesize(item.parsedSize),
-      gzipSize: filesize(item.gzipSize),
-      chunkNames: item.chunkNames
-    };
-
-    if (!isCssFile(item.label)) {
-      result.statSize = filesize(item.statSize);
-    }
-
-    return result;
-  });
-
-  report = ((initialLoadingResources && initialLoadingResources.length) || server) ?
-    initialMarkerChunks(report, initialLoadingResources, initialResourcePrefix, server, serverResourcePrefix) : report;
-
-  const reportFilepath = path.resolve(bundleDir || process.cwd(), reportFilename);
+  if (budgetErrors.length > 0) {
+    return budgetErrors.map((el) => {
+      const num = Number.parseFloat(el[2]).toFixed(2);
+      return new Error(
+        chalk`{bold {red FileSizeLimiter}: ${el[0]} {red ${el[1]}} exceeded size limit by {red ${num}KiB}}`
+      );
+    });
+  }
 
   mkdir.sync(path.dirname(reportFilepath));
 
