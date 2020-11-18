@@ -48,8 +48,9 @@ class BundleAnalyzerPlugin {
     this.compiler = compiler;
 
     const done = async (compilation) => {
-      const stats = compilation.getStats().toJson(this.opts.statsOptions);
-
+      // Fallback for older versions of webpack
+      const preV4 = !compilation.getStats;
+      const stats = (preV4 ? compilation : compilation.getStats()).toJson(this.opts.statsOptions);
       const actions = [];
 
       if (this.opts.generateStatsFile) {
@@ -67,7 +68,7 @@ class BundleAnalyzerPlugin {
         actions.push(() => this.generateStaticReport(stats));
       } else if (this.opts.analyzerMode === 'json') {
         const budgetErrors = await this.generateStatsJSONReport(stats);
-        if (budgetErrors && budgetErrors.length) {
+        if (budgetErrors && budgetErrors.length && !preV4) {
           const type = this.opts.failOnBudgetError ? 'errors' : 'warnings';
           compilation[type].push(...budgetErrors);
         }
