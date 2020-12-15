@@ -26,11 +26,11 @@ class BundleAnalyzerPlugin {
 
       // JSON specific options block
       initialLoadingResources: [],
-      maxInitialLoadingSizeSingle: 100,
-      maxInitialLoadingSizeBundle: 160,
+      maxInitialLoadingSizeSingle: 120,
+      maxInitialLoadingSizeBundle: 300,
       chunksLoadingResources: [],
       maxLazyLoadingSizeSingle: 100,
-      maxLazyLoadingSizeBundle: 200,
+      maxLazyLoadingSizeBundle: 1000,
       failOnBudgetError: true,
 
       initialResourcePrefix: 'Initial Loaded Resource : ',
