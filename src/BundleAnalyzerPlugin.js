@@ -31,7 +31,7 @@ class BundleAnalyzerPlugin {
       chunksLoadingResources: [],
       maxLazyLoadingSizeSingle: 100,
       maxLazyLoadingSizeBundle: 1000,
-      failOnBudgetError: true,
+      failOnBudgetError: false,
 
       initialResourcePrefix: 'Initial Loaded Resource : ',
       serverResourcePrefix: 'Server Resource : ',
