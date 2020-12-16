@@ -11,12 +11,13 @@ const getMarkedChunks = (
   const initialArr = [];
   const secondaryArr = [];
   const serverArr = [];
+  const initNames = initialChunks.map(chunk => (Array.isArray(chunk) ? chunk[0] : chunk));
 
-  bundleArr.map((item) => {
+  bundleArr.forEach((item) => {
     if (isServerChunk) {
       item.label = `${serverPrefix}${item.label}`;
       return serverArr.push(item);
-    } else if (initialChunks.includes(item.chunkNames[0])) {
+    } else if (initNames.includes(item.chunkNames[0])) {
       item.label = `${initialPrefix}${item.label}`;
       return initialArr.push(item);
     } else {
