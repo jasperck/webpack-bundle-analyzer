@@ -228,15 +228,6 @@ async function generateJSONReport(bundleStats, opts) {
     reportFilename
   );
 
-  if (budgetErrors.length > 0) {
-    return budgetErrors.map((el) => {
-      const num = Number.parseFloat(el[2]).toFixed(2);
-      return new Error(
-        chalk`{bold {red FileSizeLimiter}: ${el[0]} {red ${el[1]}} exceeded size limit by {red ${num}KiB}}`
-      );
-    });
-  }
-
   mkdir.sync(path.dirname(reportFilepath));
 
   try {
@@ -258,6 +249,15 @@ async function generateJSONReport(bundleStats, opts) {
 
   if (openBrowser) {
     opener(`file://${reportFilepath}`);
+  }
+
+  if (budgetErrors.length > 0) {
+    return budgetErrors.map((el) => {
+      const num = Number.parseFloat(el[2]).toFixed(2);
+      return new Error(
+        chalk`{bold {red FileSizeLimiter}: ${el[0]} {red ${el[1]}} exceeded size limit by {red ${num}KiB}}`
+      );
+    });
   }
 }
 
