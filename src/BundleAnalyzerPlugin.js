@@ -7,15 +7,15 @@ const Logger = require('./Logger');
 const viewer = require('./viewer');
 
 class BundleAnalyzerPlugin {
-
   constructor(opts) {
     this.opts = {
-      analyzerMode: 'server',
+      analyzerMode: 'json',
       analyzerHost: '127.0.0.1',
       analyzerPort: 8888,
-      reportFilename: opts.analyzerMode === 'json' ? 'report.json' : 'report.html',
-      defaultSizes: 'parsed',
-      openAnalyzer: true,
+      reportFilename:
+        opts.analyzerMode === 'json' ? 'report.json' : 'report.html',
+      defaultSizes: 'gzip',
+      openAnalyzer: false,
       generateStatsFile: false,
       statsFilename: 'stats.json',
       statsOptions: null,
@@ -23,6 +23,19 @@ class BundleAnalyzerPlugin {
       logLevel: 'info',
       // deprecated
       startAnalyzer: true,
+
+      // JSON specific options block
+      initialLoadingResources: [],
+      maxInitialLoadingSizeSingle: 120,
+      maxInitialLoadingSizeBundle: 300,
+      chunksLoadingResources: [],
+      maxLazyLoadingSizeSingle: 100,
+      maxLazyLoadingSizeBundle: 1000,
+      failOnBudgetError: false,
+
+      initialResourcePrefix: 'Initial Loaded Resource : ',
+      serverResourcePrefix: 'Server Resource : ',
+      server: false,
       ...opts
     };
 
@@ -33,9 +46,10 @@ class BundleAnalyzerPlugin {
   apply(compiler) {
     this.compiler = compiler;
 
-    const done = stats => {
-      stats = stats.toJson(this.opts.statsOptions);
-
+    const done = async (compilation) => {
+      // Fallback for older versions of webpack
+      const preV4 = !compilation.getStats;
+      const stats = (preV4 ? compilation : compilation.getStats()).toJson(this.opts.statsOptions);
       const actions = [];
 
       if (this.opts.generateStatsFile) {
@@ -52,26 +66,33 @@ class BundleAnalyzerPlugin {
       } else if (this.opts.analyzerMode === 'static') {
         actions.push(() => this.generateStaticReport(stats));
       } else if (this.opts.analyzerMode === 'json') {
-        actions.push(() => this.generateStatsJSONReport(stats));
+        const budgetErrors = await this.generateStatsJSONReport(stats);
+        if (budgetErrors && budgetErrors.length && !preV4) {
+          const type = this.opts.failOnBudgetError ? 'errors' : 'warnings';
+          compilation[type].push(...budgetErrors);
+        }
       }
 
       if (actions.length) {
         // Making analyzer logs to be after all webpack logs in the console
         setImmediate(() => {
-          actions.forEach(action => action());
+          actions.forEach((action) => action());
         });
       }
     };
 
     if (compiler.hooks) {
-      compiler.hooks.done.tap('webpack-bundle-analyzer', done);
+      compiler.hooks.afterEmit.tapPromise('webpack-bundle-analyzer', done);
     } else {
       compiler.plugin('done', done);
     }
   }
 
   async generateStatsFile(stats) {
-    const statsFilepath = path.resolve(this.compiler.outputPath, this.opts.statsFilename);
+    const statsFilepath = path.resolve(
+      this.compiler.outputPath,
+      this.opts.statsFilename
+    );
     mkdir.sync(path.dirname(statsFilepath));
 
     try {
@@ -85,23 +106,39 @@ class BundleAnalyzerPlugin {
       });
 
       this.logger.info(
-        `${bold('Webpack Bundle Analyzer')} saved stats file to ${bold(statsFilepath)}`
+        `${bold('Webpack Bundle Analyzer')} saved stats file to ${bold(
+          statsFilepath
+        )}`
       );
     } catch (error) {
       this.logger.error(
-        `${bold('Webpack Bundle Analyzer')} error saving stats file to ${bold(statsFilepath)}: ${error}`
+        `${bold('Webpack Bundle Analyzer')} error saving stats file to ${bold(
+          statsFilepath
+        )}: ${error}`
       );
     }
   }
 
   async generateStatsJSONReport(stats) {
-    viewer.generateJSONReport(stats, {
+    return await viewer.generateJSONReport(stats, {
       openBrowser: this.opts.openAnalyzer,
-      reportFilename: path.resolve(this.compiler.outputPath, this.opts.reportFilename),
+      reportFilename: path.resolve(
+        this.compiler.outputPath,
+        this.opts.reportFilename
+      ),
       bundleDir: this.getBundleDirFromCompiler(),
       logger: this.logger,
       defaultSizes: this.opts.defaultSizes,
-      excludeAssets: this.opts.excludeAssets
+      excludeAssets: this.opts.excludeAssets,
+      initialLoadingResources: this.opts.initialLoadingResources,
+      maxInitialLoadingSizeSingle: this.opts.maxInitialLoadingSizeSingle,
+      maxInitialLoadingSizeBundle: this.opts.maxInitialLoadingSizeBundle,
+      chunksLoadingResources: this.opts.chunksLoadingResources,
+      maxLazyLoadingSizeSingle: this.opts.maxLazyLoadingSizeSingle,
+      maxLazyLoadingSizeBundle: this.opts.maxLazyLoadingSizeBundle,
+      initialResourcePrefix: this.opts.initialResourcePrefix,
+      server: this.opts.server,
+      serverResourcePrefix: this.opts.serverResourcePrefix
     });
   }
 
@@ -124,7 +161,10 @@ class BundleAnalyzerPlugin {
   generateStaticReport(stats) {
     viewer.generateReport(stats, {
       openBrowser: this.opts.openAnalyzer,
-      reportFilename: path.resolve(this.compiler.outputPath, this.opts.reportFilename),
+      reportFilename: path.resolve(
+        this.compiler.outputPath,
+        this.opts.reportFilename
+      ),
       bundleDir: this.getBundleDirFromCompiler(),
       logger: this.logger,
       defaultSizes: this.opts.defaultSizes,
@@ -133,9 +173,11 @@ class BundleAnalyzerPlugin {
   }
 
   getBundleDirFromCompiler() {
-    return (this.compiler.outputFileSystem.constructor.name === 'MemoryFileSystem') ? null : this.compiler.outputPath;
+    return this.compiler.outputFileSystem.constructor.name ===
+      'MemoryFileSystem'
+      ? null
+      : this.compiler.outputPath;
   }
-
 }
 
 module.exports = BundleAnalyzerPlugin;

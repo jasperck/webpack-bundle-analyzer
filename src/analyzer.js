@@ -6,8 +6,8 @@ const gzipSize = require('gzip-size');
 
 const Logger = require('./Logger');
 const Folder = require('./tree/Folder').default;
-const { parseBundle } = require('./parseUtils');
-const { createAssetsFilter } = require('./utils');
+const { parseBundle, parseCssBundle } = require('./parseUtils');
+const { createAssetsFilter, isCssFile } = require('./utils');
 
 const FILENAME_QUERY_REGEXP = /\?.*$/;
 
@@ -35,7 +35,8 @@ function getViewerData(bundleStats, bundleDir, opts) {
     // See #22
     asset.name = asset.name.replace(FILENAME_QUERY_REGEXP, '');
 
-    return _.endsWith(asset.name, '.js') && !_.isEmpty(asset.chunks) && isAssetIncluded(asset.name);
+    return (_.endsWith(asset.name, '.js') || _.endsWith(asset.name, '.css'))
+      && !_.isEmpty(asset.chunks) && isAssetIncluded(asset.name);
   });
 
   // Trying to parse bundle assets and get real module sizes if `bundleDir` is provided
@@ -51,7 +52,11 @@ function getViewerData(bundleStats, bundleDir, opts) {
       let bundleInfo;
 
       try {
-        bundleInfo = parseBundle(assetFile);
+        if (isCssFile(assetFile)) {
+          bundleInfo = parseCssBundle(assetFile);
+        } else {
+          bundleInfo = parseBundle(assetFile);
+        }
       } catch (err) {
         const msg = (err.code === 'ENOENT') ? 'no such file' : err.message;
         logger.warn(`Error parsing bundle asset "${assetFile}": ${msg}`);

@@ -4,8 +4,18 @@ const acorn = require('acorn');
 const walk = require('acorn/dist/walk');
 
 module.exports = {
-  parseBundle
+  parseBundle,
+  parseCssBundle
 };
+
+function parseCssBundle(cssBundlePath) {
+  const content = fs.readFileSync(cssBundlePath, 'utf8');
+
+  return {
+    src: content,
+    modules: {}
+  };
+}
 
 function parseBundle(bundlePath) {
   const content = fs.readFileSync(bundlePath, 'utf8');
